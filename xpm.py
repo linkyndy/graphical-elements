@@ -23,6 +23,17 @@ class Color(object):
         self.code = code
         self.chars = chars
 
+    def __eq__(self, other):
+        if isinstance(other, Color):
+            return (self.code == other.code) and (self.chars == other.chars)
+        return False
+
+    def __hash__(self):
+        return hash(self.__repr__())
+
+    def __repr__(self):
+        return '<%s for %s>' % (self.chars, self.code)
+
 
 class XPM(object):
     def __init__(self, width, height):
