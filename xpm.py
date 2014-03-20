@@ -65,10 +65,23 @@ class XPM(object):
         self.colors.add(color)
         self.pixels[x][y] = color
 
-    def export(self, path):
+    def autofill(self, color=Color('#FFFFFF', '_')):
+        """
+        Fill unset pixels so that image can be exported
+        """
+
+        for x in range(self.width):
+            for y in range(self.height):
+                if not self.pixels[x][y]:
+                    self.set(x, y, color)
+
+    def export(self, path, autofill=False):
         """
         Export image to path.xpm file
         """
+
+        if autofill:
+            self.autofill()
 
         for x in self.pixels:
             if None in x:
