@@ -102,3 +102,33 @@ class XPM(object):
 
         with open(path, 'w') as f:
             f.write(image)
+
+    def line(self, x1, y1, x2, y2, color):
+        """
+        Draws a colored line from (x1, y1) to (x2, y2)
+        """
+
+        dx = abs(x2 - x1)
+        dy = abs(y2 - y1)
+
+        sx = 1 if x1 < x2 else -1
+        sy = 1 if y1 < y2 else -1
+
+        error = dx - dy
+
+        x = x1
+        y = y1
+
+        while(True):
+            self.set(x, y, color)
+
+            if x == x2 and y == y2:
+                break
+
+            error_double = 2 * error
+            if error_double > -dy:
+                error -= dy
+                x += sx
+            if error_double < dx:
+                error += dx
+                y += sy
