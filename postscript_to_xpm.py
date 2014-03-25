@@ -18,6 +18,12 @@ lines = [map(int, line.replace('Line\n', '').split())
          for line in list(args.file)
          if line.endswith(' Line\n')]
 
+# Translate line points to the coordinate system used in xpm.py; postscript
+# files have the origin in the lower-left corner
+for line in lines:
+    line[0], line[1] = args.height - line[1], line[0]
+    line[2], line[3] = args.height - line[3], line[2]
+
 image = XPM(args.width, args.height)
 for line in lines:
     image.line(*line, color=Color('#FF0000', 'R'))
