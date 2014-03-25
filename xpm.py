@@ -70,8 +70,8 @@ class XPM(object):
         Fill unset pixels so that image can be exported
         """
 
-        for x in range(self.width):
-            for y in range(self.height):
+        for x in range(self.height):
+            for y in range(self.width):
                 if not self.pixels[x][y]:
                     self.set(x, y, color)
 
