@@ -132,3 +132,52 @@ class XPM(object):
             if error_double < dx:
                 error += dx
                 y += sy
+
+    def clipped_line(self, x1, y1, x2, y2, xmin, ymin, xmax, ymax, color):
+        """
+        Draws a colored line from (x1, y1) to (x2, y2), clipping it to a
+        rectangle having its diagonal from (xmin, ymin) to (xmax, ymax). If
+        clipping can not occur, None is returned
+        """
+
+        def compute_outcode(x, y):
+            outcode = 0
+            if x < xmin:
+                # To the left of clip window (bin(1) == 0001)
+                outcode |= 1
+            elif x > xmax:
+                # To the right of clip window (bin(2) == 0010)
+                outcode |= 2
+            if y < ymin:
+                # Below the clip window (bin(4) == 0100)
+                outcode |= 4
+            elif y > ymax:
+                # Above the clip window (bin(8) == 1000)
+                outcode |= 8
+            return outcode
+
+        outcode1 = compute_outcode(x1, y1)
+        outcode2 = compute_outcode(x2, y2)
+        while(True):
+            if outcode1 | outcode2 == 0:
+                return self.line(x1, y1, x2, y2, color)
+            elif outcode1 & outcode2 != 0:
+                return None
+
+            outcodeout = outcode1 or outcode2
+            if outcodeout & 8:
+                x, y = x1 + (x2-x1) * (ymax-y1) / (y2-y1), ymax
+            elif outcodeout & 4:
+                x, y = x1 + (x2-x1) * (ymin-y1) / (y2-y1), ymin
+            elif outcodeout & 2:
+                x, y = xmax, y1 + (y2-y1) * (xmax-x1) / (x2-x1)
+            elif outcodeout & 1:
+                x, y = xmin, y1 + (y2-y1) * (xmin-x1) / (x2-x1)
+
+            if outcodeout == outcode1:
+                x1, y1 = x, y
+                outcode1 = compute_outcode(x1, y1)
+            else:
+                x2, y2 = x, y
+                outcode2 = compute_outcode(x2, y2)
+        return self.line(x1, y1, x2, y2, color)
