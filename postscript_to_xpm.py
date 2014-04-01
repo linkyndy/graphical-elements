@@ -57,14 +57,10 @@ if args.transforms:
         elif t[0] == 's':
             image.scale(*map(int, t[1:3])+map(float, t[3:5]))
 
-if clipping:
-    for line in lines:
-        image.clipped_line(*line, xmin=args.window_left,
-                                  ymin=args.window_bottom,
-                                  xmax=args.window_right,
-                                  ymax=args.window_top,
-                                  color=Color('#FF0000', 'R'))
-else:
-    for line in lines:
-        image.line(*line, color=Color('#FF0000', 'R'))
+for line in lines:
+    image.complex_line(
+        *line,
+        clip=(args.window_left, args.window_bottom,
+              args.window_right, args.window_top) if clipping else None,
+        color=Color('#FF0000', 'R'))
 image.export(args.output, autofill=True)
