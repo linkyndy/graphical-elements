@@ -1,3 +1,6 @@
+from math import pi, sin, cos
+
+
 IMAGE = '/* XPM */\n' \
         'static char *egc[] = {{\n\n' \
         '/* width,height,nrcolors,charsperpixel */\n' \
@@ -46,6 +49,7 @@ class XPM(object):
         self.cpp = None
         self.colors = set()
         self.pixels = [[None for _ in range(width)] for _ in range(height)]
+        self.transforms = Matrix.identity(3)
 
     def set(self, x, y, color):
         """
@@ -105,8 +109,13 @@ class XPM(object):
 
     def line(self, x1, y1, x2, y2, color):
         """
-        Draws a colored line from (x1, y1) to (x2, y2)
+        Draws a colored line from (x1, y1) to (x2, y2) after applying
+        transforms, if any are defined for the image
         """
+
+        if self.transforms:
+            x1, y1 = self._apply_transforms(x1, y1)
+            x2, y2 = self._apply_transforms(x2, y2)
 
         dx = abs(x2 - x1)
         dy = abs(y2 - y1)
@@ -181,3 +190,124 @@ class XPM(object):
                 x2, y2 = x, y
                 outcode2 = compute_outcode(x2, y2)
         return self.line(x1, y1, x2, y2, color)
+
+    def translate(self, x, y):
+        """
+        Creates a transform matrix for translating a point to (x, y)
+        """
+
+        self.transforms *= Matrix([[1, 0, x],
+                                   [0, 1, y],
+                                   [0, 0, 1]])
+
+    def rotate(self, x, y, angle):
+        """
+        Creates a transform matrix for rotating a point by given angle (in
+        degrees) around point (x, y)
+        It translates to/from the given point before/after rotation
+        """
+
+        radians = angle*pi/100
+
+        self.translate(x, y)
+        self.transforms *= Matrix([[cos(radians), -sin(radians), 0],
+                                   [sin(radians), cos(radians), 0],
+                                   [0, 0, 1]])
+        self.translate(-x, -y)
+
+    def scale(self, x, y, xfactor, yfactor):
+        """
+        Creates a transform matrix for scaling a point by given factors
+        around point (x, y)
+        It translates to/from the given point before/after scaling
+        """
+
+        self.translate(x, y)
+        self.transforms *= Matrix([[xfactor, 0, 0],
+                                   [0, yfactor, 0],
+                                   [0, 0, 1]])
+        self.translate(-x, -y)
+
+    def _apply_transforms(self, x, y):
+        """
+        Applies transforms defined for image on point (x, y), returning the
+        new transformed point's coordinates, converted to integers
+        """
+
+        point = Matrix([[x,], [y,], [1,]])
+        transformed_point = self.transforms * point
+        return int(transformed_point[0][0]), int(transformed_point[1][0])
+
+    def reset_transforms(self):
+        self.transforms = Matrix.identity(3)
+
+
+class Matrix(object):
+    def __init__(self, elements):
+        # try:
+        #     print elements
+        #     print set(elements)
+        #     if len(set(elements)) != 1:
+        #         raise ValueError('Matrix is invalid')
+        # except TypeError:
+        #     raise TypeError('Matrix must be provided as a tuple')
+        self.elements = elements
+        self.height = len(elements)
+        self.width = len(elements[0])
+
+    def __getitem__(self, key):
+        return self.elements[key]
+
+    def __eq__(self, other):
+        return self.elements == other.elements
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __nonzero__(self):
+        """
+        Identity matrices are evaluated as False
+        """
+
+        return self.width != self.height or self != self.identity(self.width)
+
+    def __mul__(self, other):
+        if self.width != other.height:
+            raise ValueError('Matrices\'s size is invalid for multiplication')
+
+        result = Matrix.null(self.height, other.width)
+        for i in range(self.height):
+            for j in range(other.width):
+                for k in range(self.width):
+                    result[i][j] += self[i][k] * other[k][j]
+        return result
+
+    def __imul__(self, other):
+        if self.width != other.height:
+            raise ValueError('Matrices\'s size is invalid for multiplication')
+
+        result = Matrix.null(self.height, other.width)
+        for i in range(self.height):
+            for j in range(other.width):
+                for k in range(self.width):
+                    result[i][j] += self[i][k] * other[k][j]
+        self.elements = result.elements
+        return self
+
+    @classmethod
+    def null(cls, height, width):
+        """
+        Returns a null matrix, of given size
+        """
+
+        return cls([[0 for _ in range(width)] for _ in range(height)])
+
+    @classmethod
+    def identity(cls, size):
+        """
+        Returns an identity matrix, of given size
+        """
+
+        return cls(
+            [[1 if i==j else 0 for j in range(size)] for i in range(size)])
+

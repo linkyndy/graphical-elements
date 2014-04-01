@@ -21,6 +21,9 @@ parser.add_argument(
 parser.add_argument(
     '-wb', '--window-bottom', type=int,
                               help='Bottom limit of clipping rectangle')
+parser.add_argument(
+    '-t', '--transforms', type=argparse.FileType('r'),
+    help='File containing transforms to be applied on input file')
 args = parser.parse_args()
 
 # Keep only valid lines from postscript file (the ones ending with LINE),
@@ -41,6 +44,19 @@ clipping = (args.window_left and args.window_top and
             args.window_right and args.window_bottom)
 
 image = XPM(args.width, args.height)
+
+# Only perform transforms if transform file is given as input
+if args.transforms:
+    transforms = [line.split() for line in list(args.transforms)
+                  if line.startswith(('t', 'r', 's'))]
+    for t in transforms:
+        if t[0] == 't':
+            image.translate(*map(int, t[1:]))
+        elif t[0] == 'r':
+            image.rotate(*map(int, t[1:]))
+        elif t[0] == 's':
+            image.scale(*map(int, t[1:3])+map(float, t[3:5]))
+
 if clipping:
     for line in lines:
         image.clipped_line(*line, xmin=args.window_left,
