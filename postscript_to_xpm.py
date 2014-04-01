@@ -29,9 +29,9 @@ args = parser.parse_args()
 # Keep only valid lines from postscript file (the ones ending with LINE),
 # remove newline characters, split the valid lines to the 4 coordinates they
 # contain, and cast them to integers
-lines = [map(int, line.replace('Line\n', '').split())
+lines = [map(int, line.replace('Line\n', '').replace(' Line \n', '').split())
          for line in list(args.file)
-         if line.endswith(' Line\n')]
+         if line.endswith((' Line\n', ' Line \n'))]
 
 # Translate line points to the coordinate system used in xpm.py; postscript
 # files have the origin in the lower-left corner
