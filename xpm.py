@@ -249,13 +249,6 @@ class XPM(object):
 
 class Matrix(object):
     def __init__(self, elements):
-        # try:
-        #     print elements
-        #     print set(elements)
-        #     if len(set(elements)) != 1:
-        #         raise ValueError('Matrix is invalid')
-        # except TypeError:
-        #     raise TypeError('Matrix must be provided as a tuple')
         self.elements = elements
         self.height = len(elements)
         self.width = len(elements[0])
