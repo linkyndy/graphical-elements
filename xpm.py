@@ -109,13 +109,8 @@ class XPM(object):
 
     def line(self, x1, y1, x2, y2, color):
         """
-        Draws a colored line from (x1, y1) to (x2, y2) after applying
-        transforms, if any are defined for the image
+        Draws a colored line from (x1, y1) to (x2, y2)
         """
-
-        if self.transforms:
-            x1, y1 = self._apply_transforms(x1, y1)
-            x2, y2 = self._apply_transforms(x2, y2)
 
         dx = abs(x2 - x1)
         dy = abs(y2 - y1)
@@ -142,11 +137,12 @@ class XPM(object):
                 error += dx
                 y += sy
 
-    def clipped_line(self, x1, y1, x2, y2, xmin, ymin, xmax, ymax, color):
+    def complex_line(self, x1, y1, x2, y2, color, clip=None, transforms=True):
         """
-        Draws a colored line from (x1, y1) to (x2, y2), clipping it to a
-        rectangle having its diagonal from (xmin, ymin) to (xmax, ymax). If
-        clipping can not occur, None is returned
+        Draws a colored line from (x1, y1) to (x2, y2), optionally clipping it
+        to a rectangle having its diagonal from (xmin, ymin) to (xmax, ymax),
+        and optionally applying transforms, if any are defined for the image.
+        If clipping can not occur, None is returned.
         """
 
         def compute_outcode(x, y):
@@ -164,6 +160,15 @@ class XPM(object):
                 # Above the clip window (bin(8) == 1000)
                 outcode |= 8
             return outcode
+
+        try:
+            xmin, ymin, xmax, ymax = clip
+        except ValueError:
+            raise ValueError('Clip argument requires 4 elements')
+
+        if transforms and self.transforms:
+            x1, y1 = self._apply_transforms(x1, y1)
+            x2, y2 = self._apply_transforms(x2, y2)
 
         outcode1 = compute_outcode(x1, y1)
         outcode2 = compute_outcode(x2, y2)
