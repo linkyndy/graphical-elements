@@ -196,6 +196,18 @@ class XPM(object):
                 outcode2 = compute_outcode(x2, y2)
         return self.line(x1, y1, x2, y2, color)
 
+    def poly(self, color, *coords):
+        """
+        Draws a colored poly with lines computed from given vertex coordinates
+        `coords` must be of the form: x1, y1, x2, y2, ...
+        """
+
+        vertices = zip(coords[::2], coords[1::2])
+        for vertex1, vertex2 in zip(vertices, vertices[1:]+[vertices[0]]):
+            x1, y1 = vertex1
+            x2, y2 = vertex2
+            self.line(x1, y1, x2, y2, color)
+
     def translate(self, x, y):
         """
         Creates a transform matrix for translating a point to (x, y)
