@@ -207,6 +207,60 @@ class XPM(object):
             x2, y2 = vertex2
             self.line(x1, y1, x2, y2, color)
 
+    def complex_poly(self, vertices, color, clip=None):
+        """
+        Draws a colored poly with lines computed from given vertices,
+        optionally clipping it to a rectangle having its diagonal from
+        (xmin, ymin) to (xmax, ymax)
+        `vertices` must be of the form: [[x1, y1], [x2, y2], ...]
+        """
+
+        def inside(point):
+            return (
+                (clip_vertex2[0]-clip_vertex1[0])*(point[1]-clip_vertex1[1]) >
+                (clip_vertex2[1]-clip_vertex1[1])*(point[0]-clip_vertex1[0])
+            )
+
+        def intersection():
+            dc = [clip_vertex1[0]-clip_vertex2[0], clip_vertex1[1]-clip_vertex2[1]]
+            dp = [s[0]-e[0], s[1]-e[1]]
+            n1 = clip_vertex1[0]*clip_vertex2[1] - clip_vertex1[1]*clip_vertex2[0]
+            n2 = s[0]*e[1] - s[1]*e[0]
+            n3 = 1.0 / (dc[0]*dp[1] - dc[1]*dp[0])
+            return [int((n1*dp[0] - n2*dc[0]) * n3), int((n1*dp[1] - n2*dc[1]) * n3)]
+
+        if not clip:
+            self.poly(vertices, color)
+
+        try:
+            xmin, ymin, xmax, ymax = clip
+        except ValueError:
+            raise ValueError('Clip argument requires 4 elements')
+
+        clip_vertices = [[xmin, ymin], [xmin, ymax],
+                         [xmax, ymax], [xmax, ymin]]
+
+        output_list = vertices
+        clip_vertex1 = clip_vertices[-1]
+
+        for clip_vertex in clip_vertices:
+            clip_vertex2 = clip_vertex
+            input_list = output_list
+            output_list = []
+            s = input_list[-1]
+
+            for vertex in input_list:
+                e = vertex
+                if inside(e):
+                    if not inside(s):
+                        output_list.append(intersection())
+                    output_list.append(e)
+                elif inside(s):
+                    output_list.append(intersection())
+                s = e
+            clip_vertex1 = clip_vertex2
+        return self.poly(output_list, color)
+
     def translate(self, x, y):
         """
         Creates a transform matrix for translating a point to (x, y)
