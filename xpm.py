@@ -1,4 +1,6 @@
 from math import pi, sin, cos
+import numpy
+from scipy.misc import comb
 
 
 IMAGE = '/* XPM */\n' \
@@ -260,6 +262,37 @@ class XPM(object):
                 s = e
             clip_vertex1 = clip_vertex2
         return self.poly(output_list, color)
+
+    def bezier(self, points, step, color):
+        """
+        Draws a colored Bezier curve using `points` as control points and
+        `step` as step size.
+        `points` must be of the form: [[x0, y0], [x1, y1], ...]
+        """
+
+        def bernstein(k, n, y):
+            """
+            Berstein polynomial of n, k as a function of t
+            """
+
+            return comb(n, k) * (t**(n-k)) * (1-t)**k
+
+
+        n_points = len(points)
+        x_points = numpy.array([p[0] for p in points])
+        y_points = numpy.array([p[1] for p in points])
+
+        t = numpy.arange(0, 1, step)
+
+        polynomial_array = numpy.array([bernstein(k, n_points-1, t)
+                                        for k in range(n_points)])
+
+        x_bezier = numpy.dot(x_points, polynomial_array)
+        y_bezier = numpy.dot(y_points, polynomial_array)
+
+        bezier_points = zip(x_bezier.astype(int), y_bezier.astype(int))
+        for p1, p2 in zip(bezier_points[:-1], bezier_points[1:]):
+            self.line(p1[0], p1[1], p2[0], p2[1], color)
 
     def translate(self, x, y):
         """
