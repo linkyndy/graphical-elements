@@ -244,11 +244,11 @@ class XPM(object):
                 x2, y2 = p2
                 self.line(x1, y1, x2, y2, fill)
 
-    def complex_poly(self, vertices, color, clip=None):
+    def complex_poly(self, vertices, color, fill=None, clip=None):
         """
         Draws a colored poly with lines computed from given vertices,
         optionally clipping it to a rectangle having its diagonal from
-        (xmin, ymin) to (xmax, ymax)
+        (xmin, ymin) to (xmax, ymax) and optionally filling it with given color
         `vertices` must be of the form: [[x1, y1], [x2, y2], ...]
         """
 
@@ -267,7 +267,7 @@ class XPM(object):
             return [int((n1*dp[0] - n2*dc[0]) * n3), int((n1*dp[1] - n2*dc[1]) * n3)]
 
         if not clip:
-            self.poly(vertices, color)
+            self.poly(vertices, color, fill)
 
         try:
             xmin, ymin, xmax, ymax = clip
@@ -296,7 +296,7 @@ class XPM(object):
                     output_list.append(intersection())
                 s = e
             clip_vertex1 = clip_vertex2
-        return self.poly(output_list, color)
+        return self.poly(output_list, color, fill)
 
     def bezier(self, points, step, color):
         """
