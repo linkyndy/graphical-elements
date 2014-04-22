@@ -198,16 +198,51 @@ class XPM(object):
                 outcode2 = compute_outcode(x2, y2)
         return self.line(x1, y1, x2, y2, color)
 
-    def poly(self, vertices, color):
+    def poly(self, vertices, color, fill=None):
         """
-        Draws a colored poly with lines computed from given vertices
+        Draws a colored poly with lines computed from given vertices,
+        optionally filling it with given color
         `vertices` must be of the form: [[x1, y1], [x2, y2], ...]
         """
 
-        for vertex1, vertex2 in zip(vertices, vertices[1:]+[vertices[0]]):
+        def intersection(line):
+            """
+            Returns a list of points which represent the intersection points
+            of any poly edge with the given horizontal line (`line`=x), sorted
+            by y value
+            """
+
+            points = []
+            for edge in edges:
+                x1, y1 = edge[0]
+                x2, y2 = edge[1]
+                if ((x1<=line and x2>=line or x2<=line and x1>=line) and x1!=x2):
+                    y = 1.*(line-x1)*(y2-y1)/(x2-x1)+y1
+                    if not [line, y] in points:
+                        points.append([line, int(round(y))])
+            return sorted(points, key=lambda p: p[1])
+
+        edges = zip(vertices, vertices[1:]+[vertices[0]])
+
+        for vertex1, vertex2 in edges:
             x1, y1 = vertex1
             x2, y2 = vertex2
             self.line(x1, y1, x2, y2, color)
+
+        if not fill:
+            return
+
+        # Start filling the poly...
+        xmin = min([v[0] for v in vertices])
+        xmax = max([v[0] for v in vertices])
+
+        for line in range(xmin, xmax+1):
+            points = intersection(line)
+
+            for p1, p2 in zip(points[::2], points[1::2]):
+                x1, y1 = p1
+                x2, y2 = p2
+                self.line(x1, y1, x2, y2, fill)
 
     def complex_poly(self, vertices, color, clip=None):
         """
