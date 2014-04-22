@@ -163,14 +163,18 @@ class XPM(object):
                 outcode |= 8
             return outcode
 
+        if transforms and self.transforms:
+            x1, y1 = self._apply_transforms(x1, y1)
+            x2, y2 = self._apply_transforms(x2, y2)
+
+        if not clip:
+            return self.line(x1, y1, x2, y2, color)
+
+        # Do clipping job...
         try:
             xmin, ymin, xmax, ymax = clip
         except ValueError:
             raise ValueError('Clip argument requires 4 elements')
-
-        if transforms and self.transforms:
-            x1, y1 = self._apply_transforms(x1, y1)
-            x2, y2 = self._apply_transforms(x2, y2)
 
         outcode1 = compute_outcode(x1, y1)
         outcode2 = compute_outcode(x2, y2)
@@ -227,7 +231,7 @@ class XPM(object):
         for vertex1, vertex2 in edges:
             x1, y1 = vertex1
             x2, y2 = vertex2
-            self.line(x1, y1, x2, y2, color)
+            self.complex_line(x1, y1, x2, y2, color)
 
         if not fill:
             return
@@ -242,7 +246,7 @@ class XPM(object):
             for p1, p2 in zip(points[::2], points[1::2]):
                 x1, y1 = p1
                 x2, y2 = p2
-                self.line(x1, y1, x2, y2, fill)
+                self.complex_line(x1, y1, x2, y2, fill)
 
     def complex_poly(self, vertices, color, fill=None, clip=None):
         """
